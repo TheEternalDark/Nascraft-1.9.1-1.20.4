@@ -4,9 +4,17 @@
 language: 'en_US'
 
 database:
-  # Available types: SQLite
-  type: 'SQLite'
-
+  type: "SQLITE" # or MYSQL, or REDIS
+  mysql:
+    host: "localhost"
+    port: 3306
+    database: "nascraft"
+    user: "root"
+    password: ""
+  redis:
+    host: "localhost"
+    port: 6379
+    password: ""
   # How many days should logs of trades last in the database?
   # With the option 60, all trades older than 60 days will be automatically removed.
   # Use -1 to disable (Keep all trades logged).
@@ -67,7 +75,7 @@ market-control:
 
   # If market is closed players won't be able to buy/sell.
   closed: false
-  
+
   # Although taxation gets applied for buying and selling actions separately, the total tax paid is the same regardless of how it is split
   # The spread is determined by the deviation in both actions. In the default case, it is 6% for selling and 4% for buying, resulting in a total spread of 10%.
 
@@ -335,7 +343,7 @@ auto-resources-injection: true
 
 # Experimental feature. USE WITH CAUTION
 ignored-keys:
-  #- "Day"
+#- "Day"
 
 # Cooldown between button uses of the AdvancedGUI layout, in seconds.
 layout-cooldown: 1
