@@ -32,161 +32,132 @@ public class TasksManager {
     public static TasksManager getInstance() { return instance == null ? instance = new TasksManager() : instance; }
 
     private TasksManager(){
-        try {
-            LocalTime timeNow = LocalTime.now();
 
-            LocalTime nextMinute = timeNow.plusMinutes(1).withSecond(0);
-            Duration timeRemaining = Duration.between(timeNow, nextMinute);
+        LocalTime timeNow = LocalTime.now();
 
+        LocalTime nextMinute = timeNow.plusMinutes(1).withSecond(0);
+        Duration timeRemaining = Duration.between(timeNow, nextMinute);
 
-            saveDataTask();
-            noiseTask((int) timeRemaining.getSeconds());
-            discordTask((int) timeRemaining.getSeconds());
-            shortTermPricesTask((int) timeRemaining.getSeconds());
-            hourlyTask();
-            saveInstants();
+        // Registering tasks:
+        saveDataTask();
+        noiseTask((int) timeRemaining.getSeconds());
+        discordTask((int) timeRemaining.getSeconds());
+        shortTermPricesTask((int) timeRemaining.getSeconds());
+        hourlyTask();
+        saveInstants();
 
-            DatabaseManager.get().getDatabase().purgeHistory();
-        } catch (Exception e) {
-            Nascraft.getInstance().getLogger().severe("Error initializing TasksManager: " + e.getMessage());
-            e.printStackTrace();
-        }
+        DatabaseManager.get().getDatabase().purgeHistory();
     }
 
     private void shortTermPricesTask(int delay) {
-        try {
-            Bukkit.getScheduler().runTaskTimerAsynchronously(Nascraft.getInstance(), () -> {
-                try {
-                    float allChanges = 0;
-                    for (Item item : MarketManager.getInstance().getAllParentItems()) {
-                        if (Config.getInstance().getPriceNoise())
-                            allChanges += item.getPrice().getChange();
 
-                        item.lowerOperations();
+        Bukkit.getScheduler().runTaskTimerAsynchronously(Nascraft.getInstance(), () -> {
 
-                        item.getPrice().addValueToShortTermStorage();
-                    }
+            float allChanges = 0;
+            for (Item item : MarketManager.getInstance().getAllParentItems()) {
+                if (Config.getInstance().getPriceNoise())
+                    allChanges += item.getPrice().getChange();
 
-                    MarketManager.getInstance().updateMarketChange1h(allChanges/MarketManager.getInstance().getAllParentItems().size());
+                item.lowerOperations();
 
-                    if (AGUI != null &&
-                            AGUI.isEnabled() &&
-                            GuiWallManager.getInstance().getActiveInstances() != null)
+                item.getPrice().addValueToShortTermStorage();
+            }
 
-                        for (GuiWallInstance instance : GuiWallManager.getInstance().getActiveInstances()) {
+            MarketManager.getInstance().updateMarketChange1h(allChanges/MarketManager.getInstance().getAllParentItems().size());
 
-                            if (instance.getLayout().getName().equals("Nascraft"))
-                                for (Player player : Bukkit.getOnlinePlayers())
-                                    if (instance.getInteraction(player) != null)
-                                        LayoutModifier.getInstance().updateMainPage(instance.getInteraction(player).getComponentTree(), true, player);
-                        }
-                } catch (Exception e) {
-                    Nascraft.getInstance().getLogger().severe("Error in shortTermPricesTask: " + e.getMessage());
+            if (AGUI != null &&
+                AGUI.isEnabled() &&
+                GuiWallManager.getInstance().getActiveInstances() != null)
+
+                for (GuiWallInstance instance : GuiWallManager.getInstance().getActiveInstances()) {
+
+                    if (instance.getLayout().getName().equals("Nascraft"))
+                        for (Player player : Bukkit.getOnlinePlayers())
+                            if (instance.getInteraction(player) != null)
+                                LayoutModifier.getInstance().updateMainPage(instance.getInteraction(player).getComponentTree(), true, player);
+
                 }
-            }, (long) delay * ticksPerSecond, 60L * ticksPerSecond);
-        } catch (Exception e) {
-            Nascraft.getInstance().getLogger().severe("Could not schedule shortTermPricesTask: " + e.getMessage());
-        }
+
+        }, (long) delay * ticksPerSecond, 60L * ticksPerSecond);
     }
 
     private void discordTask(int delay) {
-        try {
-            if (Config.getInstance().getDiscordEnabled()) {
-                Bukkit.getScheduler().runTaskTimerAsynchronously(Nascraft.getInstance(), () -> {
-                    try {
-                        if (Config.getInstance().getDiscordMenuEnabled()) {
-                            DiscordBot.getInstance().update();
-                            DiscordAlerts.getInstance().updateAlerts();
-                        }
 
-                        if (Config.getInstance().getLogChannelEnabled())
-                            DiscordLog.getInstance().flushBuffer();
-                    } catch (Exception e) {
-                        Nascraft.getInstance().getLogger().severe("Error in discordTask: " + e.getMessage());
-                    }
-                }, (long) delay * ticksPerSecond, ((long) Config.getInstance().getUpdateTime() *  ticksPerSecond));
-            }
-        } catch (Exception e) {
-            Nascraft.getInstance().getLogger().severe("Could not schedule discordTask: " + e.getMessage());
+        if (Config.getInstance().getDiscordEnabled()) {
+
+            Bukkit.getScheduler().runTaskTimerAsynchronously(Nascraft.getInstance(), () -> {
+
+                if (Config.getInstance().getDiscordMenuEnabled()) {
+                    DiscordBot.getInstance().update();
+                    DiscordAlerts.getInstance().updateAlerts();
+                }
+
+                if (Config.getInstance().getLogChannelEnabled())
+                    DiscordLog.getInstance().flushBuffer();
+
+            }, (long) delay * ticksPerSecond, ((long) Config.getInstance().getUpdateTime() *  ticksPerSecond));
         }
     }
 
     private void noiseTask(int delay) {
-        try {
-            Bukkit.getScheduler().runTaskTimerAsynchronously(Nascraft.getInstance(), () -> {
-                try {
-                    for (Item item : MarketManager.getInstance().getAllParentItems()) {
-                        if (Config.getInstance().getPriceNoise())
-                            item.getPrice().applyNoise();
-                    }
-                } catch (Exception e) {
-                    Nascraft.getInstance().getLogger().severe("Error in noiseTask: " + e.getMessage());
-                }
-            }, (long) delay * ticksPerSecond, (long) Config.getInstance().getNoiseTime() *  ticksPerSecond);
-        } catch (Exception e) {
-            Nascraft.getInstance().getLogger().severe("Could not schedule noiseTask: " + e.getMessage());
-        }
+
+        Bukkit.getScheduler().runTaskTimerAsynchronously(Nascraft.getInstance(), () -> {
+
+            for (Item item : MarketManager.getInstance().getAllParentItems()) {
+                if (Config.getInstance().getPriceNoise())
+                    item.getPrice().applyNoise();
+
+            }
+        }, (long) delay * ticksPerSecond, (long) Config.getInstance().getNoiseTime() *  ticksPerSecond);
     }
 
     private void saveDataTask() {
-        try {
-            Bukkit.getScheduler().runTaskTimerAsynchronously(Nascraft.getInstance(), () -> {
-                try {
-                    DatabaseManager.get().getDatabase().saveEverything();
-                    DatabaseManager.get().getDatabase().saveCPIValue(MarketManager.getInstance().getConsumerPriceIndex());
-                    PortfoliosManager.getInstance().savePortfoliosWorthOfOnlinePlayers();
-                } catch (Exception e) {
-                    Nascraft.getInstance().getLogger().severe("Error in saveDataTask: " + e.getMessage());
-                }
-            }, 60L * 5 * ticksPerSecond, 60L * 5 * ticksPerSecond);
-        } catch (Exception e) {
-            Nascraft.getInstance().getLogger().severe("Could not schedule saveDataTask: " + e.getMessage());
-        }
+
+        Bukkit.getScheduler().runTaskTimerAsynchronously(Nascraft.getInstance(), () -> {
+
+            DatabaseManager.get().getDatabase().saveEverything();
+
+            DatabaseManager.get().getDatabase().saveCPIValue(MarketManager.getInstance().getConsumerPriceIndex());
+
+            PortfoliosManager.getInstance().savePortfoliosWorthOfOnlinePlayers();
+
+        }, 60L * 5 * ticksPerSecond, 60L * 5 * ticksPerSecond); // 5 min
     }
 
     private void saveInstants() {
-        try {
-            Bukkit.getScheduler().runTaskTimerAsynchronously(Nascraft.getInstance(), () -> {
-                try {
-                    for (Item item : MarketManager.getInstance().getAllParentItems()) {
-                        item.getItemStats().addInstant(new Instant(
-                                LocalDateTime.now(),
-                                item.getPrice().getValue(),
-                                item.getVolume()
-                        ));
-                        item.restartVolume();
-                    }
-                } catch (Exception e) {
-                    Nascraft.getInstance().getLogger().severe("Error in saveInstants: " + e.getMessage());
-                }
-            }, 2400, 60L * ticksPerSecond);
-        } catch (Exception e) {
-            Nascraft.getInstance().getLogger().severe("Could not schedule saveInstants: " + e.getMessage());
-        }
+
+        Bukkit.getScheduler().runTaskTimerAsynchronously(Nascraft.getInstance(), () -> {
+
+            for (Item item : MarketManager.getInstance().getAllParentItems()) {
+
+                item.getItemStats().addInstant(new Instant(
+                        LocalDateTime.now(),
+                        item.getPrice().getValue(),
+                        item.getVolume()
+                ));
+
+                item.restartVolume();
+            }
+
+        }, 2400, 60L * ticksPerSecond);
     }
 
     private void hourlyTask() {
-        try {
-            LocalTime timeNow = LocalTime.now();
-            LocalTime nextHour = timeNow.plusHours(1).withMinute(0).withSecond(0);
-            Duration timeRemaining = Duration.between(timeNow, nextHour);
+        LocalTime timeNow = LocalTime.now();
 
-            Bukkit.getScheduler().runTaskTimerAsynchronously(Nascraft.getInstance(), () -> {
-                try {
-                    for (Item item : MarketManager.getInstance().getAllItems()) {
-                        item.getPrice().restartHourLimits();
-                    }
+        LocalTime nextHour = timeNow.plusHours(1).withMinute(0).withSecond(0);
+        Duration timeRemaining = Duration.between(timeNow, nextHour);
 
-                    MarketManager.getInstance().setOperationsLastHour(0);
+        Bukkit.getScheduler().runTaskTimerAsynchronously(Nascraft.getInstance(), () -> {
 
-                    if (Config.getInstance().getAlertsMenuEnabled())
-                        DatabaseManager.get().getDatabase().purgeAlerts();
-                } catch (Exception e) {
-                    Nascraft.getInstance().getLogger().severe("Error in hourlyTask: " + e.getMessage());
-                }
-            }, timeRemaining.getSeconds()*ticksPerSecond, 60 * 60 * ticksPerSecond);
-        } catch (Exception e) {
-            Nascraft.getInstance().getLogger().severe("Could not schedule hourlyTask: " + e.getMessage());
-        }
+            for (Item item : MarketManager.getInstance().getAllItems()) {
+                item.getPrice().restartHourLimits();
+            }
+
+            MarketManager.getInstance().setOperationsLastHour(0);
+
+            if (Config.getInstance().getAlertsMenuEnabled()) DatabaseManager.get().getDatabase().purgeAlerts();
+
+        }, timeRemaining.getSeconds()*ticksPerSecond, 60 * 60 * ticksPerSecond); // 1 hour
     }
 }

@@ -15,12 +15,18 @@ import org.bukkit.Material;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class Category {
 
+
     private String identifier;
+
     private String displayName;
+
     private String formattedDisplayName;
+
     private Material material;
+
     private List<Item> items = new ArrayList<>();
 
     public Category(String identifier) {
@@ -43,73 +49,56 @@ public class Category {
         this.material = Config.getInstance().getMaterialOfCategory(this);
     }
 
-    public void addItem(Item item) {
-        items.add(item);
-    }
+    public void addItem(Item item) { items.add(item); }
 
-    public void removeItem(Item item) {
-        items.remove(item);
-    }
+    public void removeItem(Item item) { items.remove(item); }
 
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
+    //
 
-    public void setDisplayMaterial(Material material) {
-        this.material = material;
-    }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
 
-    public int getNumberOfItems() {
-        return items.size();
-    }
+    public void setDisplayMaterial(Material material) { this.material = material; }
 
-    public Item getItemOfIndex(int index) {
-        return items.get(index);
-    }
+    //
 
-    public String getIdentifier() {
-        return identifier;
-    }
+    public int getNumberOfItems() { return items.size(); }
 
-    public String getDisplayName() {
-        return displayName;
-    }
+    public Item getItemOfIndex(int index) { return items.get(index); }
 
-    public String getFormattedDisplayName() {
-        return formattedDisplayName;
-    }
+    public String getIdentifier() { return identifier; }
 
-    public Material getMaterial() {
-        return material;
-    }
+    public String getDisplayName() { return displayName; }
 
-    public List<Item> getItems() {
-        return items;
-    }
+    public String getFormattedDisplayName() { return formattedDisplayName; }
+
+    public Material getMaterial() { return material; }
+
+    public List<Item> getItems() { return items; }
 
     public List<String> getItemsIdentifiers() {
+
         List<String> itemsIdentifiers = new ArrayList<>();
+
         for (Item item : items)
             itemsIdentifiers.add(item.getIdentifier());
+
         return itemsIdentifiers;
     }
 
-    public void setItems(List<Item> items) {
-        this.items = items;
-    }
+    public void setItems(List<Item> items) { this.items = items; }
 
     public double getDayChange() {
+
         double changes = 0;
 
         for (Item item : items) {
-            List<Instant> dayPrices = DatabaseManager.get().getDatabase().getDayPrices(item);
-            if (!dayPrices.isEmpty()) {
-                Instant firstInstant = dayPrices.get(0);
-                if (firstInstant.getPrice() != 0) {
-                    changes += ((item.getPrice().getValue() - firstInstant.getPrice()) / firstInstant.getPrice());
-                }
-            }
+
+            Instant firstInstant = DatabaseManager.get().getDatabase().getDayPrices(item).getFirst();
+
+            if (firstInstant.getPrice() != 0 )
+                changes += ((item.getPrice().getValue() - firstInstant.getPrice()) / firstInstant.getPrice());
         }
-        return items.isEmpty() ? 0 : changes / items.size();
+        return changes/items.size();
     }
+
 }
