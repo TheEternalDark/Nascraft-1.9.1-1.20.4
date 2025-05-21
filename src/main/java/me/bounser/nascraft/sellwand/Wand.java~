@@ -1,0 +1,202 @@
+package me.bounser.nascraft.sellwand;
+
+import me.bounser.nascraft.Nascraft;
+import me.bounser.nascraft.formatter.Formatter;
+import me.bounser.nascraft.formatter.Style;
+import me.bounser.nascraft.managers.currencies.CurrenciesManager;
+import me.bounser.nascraft.managers.currencies.Currency;
+import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.event.block.Action;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+public class Wand {
+
+    private final String name;
+    private final Material material;
+    private final String displayName;
+    private final List<String> lore;
+    private final int uses;
+    private final float multiplier;
+    private final float maxProfit;
+    private final int cooldown;
+    private final boolean enchanted;
+    private final String permission;
+    private final Action sell;
+    private final Action estimate;
+    private final List<Currency> currencies;
+
+    public Wand(String name, Material material, String displayName, List<String> lore, int uses, float multiplier, float maxProfit, int cooldown, boolean enchanted, String permission, Action sell, Action estimate, List<Currency> currencies) {
+        this.name = name;
+        this.material = material;
+        this.displayName = displayName;
+        this.lore = lore;
+        this.uses = uses;
+        this.multiplier = multiplier;
+        this.maxProfit = maxProfit;
+        this.cooldown = cooldown;
+        this.enchanted = enchanted;
+        this.permission = permission;
+        this.sell = sell;
+        this.estimate = estimate;
+        this.currencies = currencies;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Material getMaterial() {
+        return material;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public List<String> getLore() {
+        return lore;
+    }
+
+    public int getUses() {
+        return uses;
+    }
+
+    public float getMultiplier() {
+        return multiplier;
+    }
+
+    public float getMaxProfit() {
+        return maxProfit;
+    }
+
+    public int getCooldown() {
+        return cooldown;
+    }
+
+    public boolean isEnchanted() {
+        return enchanted;
+    }
+
+    public String getPermission() {
+        return permission;
+    }
+
+    public Action getSell() {
+        return sell;
+    }
+
+    public Action getEstimate() {
+        return estimate;
+    }
+
+    public List<Currency> getCurrencies() {
+        return currencies;
+    }
+
+    public ItemStack getItemStack(int usesLeft) {
+
+        ItemStack itemStack = new ItemStack(material);
+        ItemMeta meta = itemStack.getItemMeta();
+
+        meta.setDisplayName(displayName.replace("&", "§"));
+
+        List<String> loreWithPlaceholders = new ArrayList<>();
+
+        for (String line : lore) {
+            loreWithPlaceholders.add(line.replace("&", "§")
+                    .replace("{uses}", String.valueOf(usesLeft))
+                    .replace("{multiplier}", String.valueOf(multiplier)));
+        }
+
+        meta.setLore(loreWithPlaceholders);
+
+        if (enchanted) {
+            // Alteração aqui: usando getByKey em vez de UNBREAKING diretamente
+            meta.addEnchant(Enchantment.getByKey(NamespacedKey.minecraft("unbreaking")), 1, true);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        }
+
+        itemStack.setItemMeta(meta);
+
+        NamespacedKey key = new NamespacedKey("nascraft", "wand");
+        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, name);
+
+        NamespacedKey usesKey = new NamespacedKey("nascraft", "uses");
+        meta.getPersistentDataContainer().set(usesKey, PersistentDataType.INTEGER, usesLeft);
+
+        itemStack.setItemMeta(meta);
+
+        return itemStack;
+    }
+
+    public static String getWandName(ItemStack itemStack) {
+
+        if (itemStack == null || itemStack.getType() == Material.AIR) return null;
+
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta == null) return null;
+
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        NamespacedKey key = new NamespacedKey("nascraft", "wand");
+
+        if (!container.has(key, PersistentDataType.STRING)) return null;
+
+        return container.get(key, PersistentDataType.STRING);
+    }
+
+    public static int getWandUses(ItemStack itemStack) {
+
+        if (itemStack == null || itemStack.getType() == Material.AIR) return -1;
+
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta == null) return -1;
+
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        NamespacedKey key = new NamespacedKey("nascraft", "uses");
+
+        if (!container.has(key, PersistentDataType.INTEGER)) return -1;
+
+        return container.get(key, PersistentDataType.INTEGER);
+    }
+
+    public static void setWandUses(ItemStack itemStack, int uses) {
+
+        if (itemStack == null || itemStack.getType() == Material.AIR) return;
+
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta == null) return;
+
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        NamespacedKey key = new NamespacedKey("nascraft", "uses");
+
+        container.set(key, PersistentDataType.INTEGER, uses);
+
+        itemStack.setItemMeta(meta);
+    }
+
+    public static boolean isWand(ItemStack itemStack) {
+
+        if (itemStack == null || itemStack.getType() == Material.AIR) return false;
+
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta == null) return false;
+
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        NamespacedKey key = new NamespacedKey("nascraft", "wand");
+
+        return container.has(key, PersistentDataType.STRING);
+    }
+}

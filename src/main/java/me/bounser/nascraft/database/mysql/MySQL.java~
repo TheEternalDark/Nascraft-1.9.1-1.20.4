@@ -38,27 +38,27 @@ public class MySQL implements Database {
     @Override
     public void connect() {
         try {
-            Nascraft.getInstance().getLogger().info("Tentando conectar ao MySQL...");
-            Nascraft.getInstance().getLogger().info("Host: " + host + ", Porta: " + port + ", Banco de dados: " + database);
+            Nascraft.getInstance().getLogger().info("§eTentando conectar ao MySQL...");
+            Nascraft.getInstance().getLogger().info("§eHost: " + host + ", Porta: " + port + ", Banco de dados: " + database);
 
             connection = DriverManager.getConnection(url, username, password);
 
             if (connection != null && !connection.isClosed()) {
-                Nascraft.getInstance().getLogger().info("Conexão com MySQL estabelecida com sucesso!");
+                Nascraft.getInstance().getLogger().info("§aConexão com MySQL estabelecida com sucesso!");
                 createTables();
             } else {
-                Nascraft.getInstance().getLogger().severe("Falha ao conectar ao MySQL: Conexão retornou nula ou fechada");
+                Nascraft.getInstance().getLogger().severe("§cFalha ao conectar ao MySQL: Conexão retornou nula ou fechada");
             }
         } catch (SQLException e) {
-            Nascraft.getInstance().getLogger().severe("Erro ao conectar ao MySQL: " + e.getMessage());
-            Nascraft.getInstance().getLogger().severe("Código do erro SQL: " + e.getErrorCode());
+            Nascraft.getInstance().getLogger().severe("§cErro ao conectar ao MySQL: " + e.getMessage());
+            Nascraft.getInstance().getLogger().severe("§cCódigo do erro SQL: " + e.getErrorCode());
 
             if (e.getMessage().contains("Communications link failure")) {
-                Nascraft.getInstance().getLogger().severe("Não foi possível estabelecer conexão com o servidor MySQL. Verifique se o servidor está rodando e acessível.");
+                Nascraft.getInstance().getLogger().severe("§c[Nascraft] §4Não foi possível estabelecer conexão com o servidor MySQL. Verifique se o servidor está rodando e acessível.");
             } else if (e.getMessage().contains("Access denied")) {
-                Nascraft.getInstance().getLogger().severe("Acesso negado. Verifique o nome de usuário e senha.");
+                Nascraft.getInstance().getLogger().severe("§c[Nascraft] §4Acesso negado. Verifique o nome de usuário e senha.");
             } else if (e.getMessage().contains("Unknown database")) {
-                Nascraft.getInstance().getLogger().severe("Banco de dados '" + database + "' não existe. Crie o banco de dados antes de conectar.");
+                Nascraft.getInstance().getLogger().severe("§c[Nascraft] §4Banco de dados '" + database + "' não existe. Crie o banco de dados antes de conectar.");
             }
         }
     }
@@ -69,9 +69,9 @@ public class MySQL implements Database {
         if (connection != null) {
             try {
                 connection.close();
-                Nascraft.getInstance().getLogger().info("Conexão com MySQL fechada com sucesso.");
+                Nascraft.getInstance().getLogger().info("§aConexão com MySQL fechada com sucesso.");
             } catch (SQLException e) {
-                Nascraft.getInstance().getLogger().warning("Erro ao fechar conexão MySQL: " + e.getMessage());
+                Nascraft.getInstance().getLogger().warning("§cErro ao fechar conexão MySQL: " + e.getMessage());
             }
         }
     }
@@ -81,7 +81,7 @@ public class MySQL implements Database {
         try {
             return connection != null && !connection.isClosed();
         } catch (SQLException e) {
-            Nascraft.getInstance().getLogger().warning("Erro ao verificar estado da conexão MySQL: " + e.getMessage());
+            Nascraft.getInstance().getLogger().warning("§cErro ao verificar estado da conexão MySQL: " + e.getMessage());
             return false;
         }
     }

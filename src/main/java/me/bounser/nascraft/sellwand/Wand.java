@@ -22,9 +22,7 @@ import java.util.List;
 
 public class Wand {
 
-
     private final String name;
-
     private final Material material;
     private final String displayName;
     private final List<String> lore;
@@ -41,8 +39,7 @@ public class Wand {
 
     private final ItemStack itemStack;
 
-    public Wand (String name, Material material, String displayName, List<String> lore, int uses, float multiplier, float maxProfit, int cooldown, boolean glim, String permission, Action sell, Action estimate, List<Currency> currencies) {
-
+    public Wand(String name, Material material, String displayName, List<String> lore, int uses, float multiplier, float maxProfit, int cooldown, boolean glim, String permission, Action sell, Action estimate, List<Currency> currencies) {
         this.name = name;
         this.material = material;
 
@@ -64,37 +61,40 @@ public class Wand {
         this.itemStack = generateItemStackOfNewWand();
     }
 
-    public String getName() { return name; }
+    public String getName() {
+        return name;
+    }
 
     public List<String> getLore(int uses, float profitLeft) {
-
         List<String> newLore = new ArrayList<>();
-
         for (String line : lore) {
             Component loreComponent = MiniMessage.miniMessage().deserialize(
                     line
-                    .replace("[USES]", String.valueOf(uses))
-                    .replace("[PROFIT-LEFT]", Formatter.format(CurrenciesManager.getInstance().getDefaultCurrency(), profitLeft, Style.ROUND_BASIC)));
+                            .replace("[USES]", String.valueOf(uses))
+                            .replace("[PROFIT-LEFT]", Formatter.format(CurrenciesManager.getInstance().getDefaultCurrency(), profitLeft, Style.ROUND_BASIC))
+            );
             newLore.add(BukkitComponentSerializer.legacy().serialize(loreComponent));
         }
-
         return newLore;
     }
 
-    public int getDefaultUses() { return defaultUses; }
+    public int getDefaultUses() {
+        return defaultUses;
+    }
 
-    public float getMultiplier() { return multiplier; }
+    public float getMultiplier() {
+        return multiplier;
+    }
 
-    public int getCooldown() { return cooldown; }
+    public int getCooldown() {
+        return cooldown;
+    }
 
     public ItemStack generateItemStackOfNewWand() {
-
         ItemStack wand = new ItemStack(material, 1);
-
         ItemMeta itemMeta = wand.getItemMeta();
 
         itemMeta.setDisplayName(displayName);
-
         itemMeta.setLore(getLore(defaultUses, maxProfit));
 
         NamespacedKey keyType = new NamespacedKey(Nascraft.getInstance(), "wand-type");
@@ -111,22 +111,34 @@ public class Wand {
         }
 
         if (glim) {
-            itemMeta.addEnchant(Enchantment.UNBREAKING, 1, true);
-            itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            Enchantment unbreaking = Enchantment.getByKey(NamespacedKey.minecraft("unbreaking"));
+            if (unbreaking != null) {
+                itemMeta.addEnchant(unbreaking, 1, true);
+                itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            }
         }
 
         wand.setItemMeta(itemMeta);
-
         return wand;
     }
 
-    public ItemStack getItemStackOfNewWand() { return itemStack; }
+    public ItemStack getItemStackOfNewWand() {
+        return itemStack;
+    }
 
-    public String getPermission() { return permission; }
+    public String getPermission() {
+        return permission;
+    }
 
-    public Action getSellAction() { return sell; }
-    public Action getEstimateAction() { return estimate; }
+    public Action getSellAction() {
+        return sell;
+    }
 
-    public List<Currency> getCurrencies() { return currencies; }
+    public Action getEstimateAction() {
+        return estimate;
+    }
 
+    public List<Currency> getCurrencies() {
+        return currencies;
+    }
 }
