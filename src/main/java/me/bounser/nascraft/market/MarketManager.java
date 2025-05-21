@@ -8,7 +8,6 @@ import me.bounser.nascraft.formatter.Formatter;
 import me.bounser.nascraft.managers.DebtManager;
 import me.bounser.nascraft.managers.ImagesManager;
 import me.bounser.nascraft.managers.GraphManager;
-// Don't remove this import, we'll handle the error differently
 import me.bounser.nascraft.managers.TasksManager;
 import me.bounser.nascraft.managers.currencies.CurrenciesManager;
 import me.bounser.nascraft.market.resources.Category;
@@ -126,25 +125,9 @@ public class MarketManager {
         marketChanges1h = new ArrayList<>(Collections.nCopies(60, 0f));
         marketChanges24h = new ArrayList<>(Collections.nCopies(24, 0f));
 
-
-        try {
-            TasksManager.getInstance();
-        } catch (NoClassDefFoundError e) {
-            Nascraft.getInstance().getLogger().severe("TasksManager class not found! Some features may not work correctly.");
-            Nascraft.getInstance().getLogger().severe("This is likely due to a build issue. Please check your Maven configuration.");
-            Nascraft.getInstance().getLogger().severe("Error details: " + e.getMessage());
-
-        }
-
-        try {
-            GraphManager.getInstance();
-        } catch (Exception e) {
-            Nascraft.getInstance().getLogger().severe("Error initializing GraphManager: " + e.getMessage());
-
-        }
+        TasksManager.getInstance();
+        GraphManager.getInstance();
     }
-
-
 
     public void reload() {
         items.clear();
@@ -449,15 +432,15 @@ public class MarketManager {
             if (!item.isParent()) continue;
 
             itemsDTO.add(
-                    new ItemDTO(
-                            item.getIdentifier(),
-                            item.getName(),
-                            item.getPrice().getValue(),
-                            item.getPrice().getBuyPrice(),
-                            item.getPrice().getSellPrice(),
-                            item.getOperations(),
-                            Formatter.roundToDecimals(item.getPrice().getValueChangeLastHour(), 1)
-                    )
+                new ItemDTO(
+                        item.getIdentifier(),
+                        item.getName(),
+                        item.getPrice().getValue(),
+                        item.getPrice().getBuyPrice(),
+                        item.getPrice().getSellPrice(),
+                        item.getOperations(),
+                        Formatter.roundToDecimals(item.getPrice().getValueChangeLastHour(), 1)
+                )
             );
         }
 
@@ -491,7 +474,7 @@ public class MarketManager {
                     new TimeSeriesDTO(
                             instant.getLocalDateTime().toEpochSecond(ZoneOffset.UTC),
                             instant.getIndexValue()
-                    )
+                            )
             );
         }
 
@@ -553,4 +536,5 @@ public class MarketManager {
         }
         return portfolioDTO;
     }
+
 }
