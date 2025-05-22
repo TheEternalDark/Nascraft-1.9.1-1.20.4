@@ -30,13 +30,19 @@ public class DatabaseManager {
             case MYSQL:
                 database = new MySQL(
                         Config.getInstance().getHost(),
-                        String.valueOf(Config.getInstance().getPort()),
+                        Config.getInstance().getPort(),
                         Config.getInstance().getDatabase(),
                         Config.getInstance().getUser(),
                         Config.getInstance().getPassword()
                 );
                 break;
 
+            case REDIS:
+                database = new Redis(
+                        Config.getInstance().getHost(),
+                        Config.getInstance().getPort(),
+                        Config.getInstance().getPassword()
+                ); break;
         }
 
         database.connect();

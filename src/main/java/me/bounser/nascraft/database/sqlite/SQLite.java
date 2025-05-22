@@ -511,26 +511,20 @@ public class SQLite implements Database {
     @Override
     public HashMap<Integer, Double> getContributionChangeEachDay(UUID uuid) {
         try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + PATH)) {
-            HashMap<Integer, Double> result = PortfoliosLog.getContributionChangeEachDay(connection, uuid);
-
-            return result != null ? result : new HashMap<>();
+            return PortfoliosLog.getContributionChangeEachDay(connection, uuid);
         } catch (SQLException e) {
             Nascraft.getInstance().getLogger().warning(e.getMessage());
-
-            return new HashMap<>();
+            return null;
         }
     }
 
     @Override
     public HashMap<Integer, HashMap<String, Integer>> getCompositionEachDay(UUID uuid) {
         try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + PATH)) {
-            HashMap<Integer, HashMap<String, Integer>> result = PortfoliosLog.getCompositionEachDay(connection, uuid);
-
-            return result != null ? result : new HashMap<>();
+            return PortfoliosLog.getCompositionEachDay(connection, uuid);
         } catch (SQLException e) {
             Nascraft.getInstance().getLogger().warning(e.getMessage());
-
-            return new HashMap<>();
+            return null;
         }
     }
 
@@ -575,14 +569,11 @@ public class SQLite implements Database {
     @Override
     public HashMap<UUID, Double> getUUIDAndDebt() {
         try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + PATH)) {
-            HashMap<UUID, Double> result = Debt.getUUIDAndDebt(connection);
-
-            return result != null ? result : new HashMap<>();
+            return Debt.getUUIDAndDebt(connection);
         } catch (SQLException e) {
             Nascraft.getInstance().getLogger().warning(e.getMessage());
-
-            return new HashMap<>();
         }
+        return null;
     }
 
     @Override
@@ -597,14 +588,11 @@ public class SQLite implements Database {
     @Override
     public HashMap<UUID, Double> getUUIDAndInterestsPaid() {
         try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + PATH)) {
-            HashMap<UUID, Double> result = Debt.getUUIDAndInterestsPaid(connection);
-
-            return result != null ? result : new HashMap<>();
+            return Debt.getUUIDAndInterestsPaid(connection);
         } catch (SQLException e) {
             Nascraft.getInstance().getLogger().warning(e.getMessage());
-
-            return new HashMap<>();
         }
+        return null;
     }
 
     @Override
@@ -658,14 +646,11 @@ public class SQLite implements Database {
     @Override
     public HashMap<UUID, Portfolio> getTopWorth(int n) {
         try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + PATH)) {
-            HashMap<UUID, Portfolio> result = PortfoliosWorth.getTopWorth(connection, n);
-
-            return result != null ? result : new HashMap<>();
+            return PortfoliosWorth.getTopWorth(connection, n);
         } catch (SQLException e) {
             Nascraft.getInstance().getLogger().warning(e.getMessage());
-
-            return new HashMap<>();
         }
+        return null;
     }
 
     @Override
