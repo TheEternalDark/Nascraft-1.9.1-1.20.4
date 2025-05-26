@@ -50,12 +50,6 @@ public class SQLite implements Database {
         }
     }
 
-    public Connection getConnection() throws SQLException {
-        if (connection == null || connection.isClosed()) {
-            connect();
-        }
-        return connection;
-    }
     private void createTable(Connection connection, String tableName, String columns) {
         try {
             Statement statement = connection.createStatement();

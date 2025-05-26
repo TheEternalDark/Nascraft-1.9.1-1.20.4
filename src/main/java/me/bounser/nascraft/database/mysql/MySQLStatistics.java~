@@ -1,0 +1,82 @@
+package me.bounser.nascraft.database.mysql;
+
+import me.bounser.nascraft.Nascraft;
+import me.bounser.nascraft.database.commands.resources.NormalisedDate;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+/**
+ * MySQL-specific implementation for Statistics operations
+ */
+public class MySQLStatistics {
+
+    /**
+     * MySQL-compatible implementation of addTransaction
+     * Uses INSERT ... ON DUPLICATE KEY UPDATE instead of REPLACE
+     */
+    public static void addTransaction(Connection connection, double newFlow, double effectiveTaxes) {
+        try {
+            int today = NormalisedDate.getDays();
+
+            // Check if record exists
+            String query = "SELECT flow, operations, taxes FROM flows WHERE day = ?";
+            PreparedStatement prep = connection.prepareStatement(query);
+            prep.setInt(1, today);
+            ResultSet rs = prep.executeQuery();
+
+            if (rs.next()) {
+                // Update existing record
+                double flow = rs.getDouble("flow") + newFlow;
+                double taxes = rs.getDouble("taxes") + Math.abs(effectiveTaxes);
+                int operations = rs.getInt("operations") + 1;
+
+                String updateSql = "UPDATE flows SET flow = ?, taxes = ?, operations = ? WHERE day = ?";
+                PreparedStatement updateStmt = connection.prepareStatement(updateSql);
+                updateStmt.setDouble(1, flow);
+                updateStmt.setDouble(2, taxes);
+                updateStmt.setInt(3, operations);
+                updateStmt.setInt(4, today);
+                updateStmt.executeUpdate();
+            } else {
+                // Insert new record
+                String insertSql = "INSERT INTO flows (day, flow, taxes, operations) VALUES (?, ?, ?, ?)";
+                PreparedStatement insertStmt = connection.prepareStatement(insertSql);
+                insertStmt.setInt(1, today);
+                insertStmt.setDouble(2, newFlow);
+                insertStmt.setDouble(3, Math.abs(effectiveTaxes));
+                insertStmt.setInt(4, 1);
+                insertStmt.executeUpdate();
+            }
+        } catch (SQLException e) {
+            Nascraft.getInstance().getLogger().warning("Error adding transaction: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Optimized CPI query for MySQL
+     */
+    public static List<CPIInstant> getAllCPI(Connection connection) {
+        List<CPIInstant> cpiInstants = new ArrayList<>();
+
+        try {
+            // Use ORDER BY for consistent results
+            String sql = "SELECT value, date FROM cpi ORDER BY day ASC";
+            PreparedStatement prep = connection.prepareStatement(sql);
+            ResultSet rs = prep.executeQuery();
+
+            while (rs.next()) {
+                cpiInstants.add(new CPIInstant(
+                        rs.getFloat("value"),
+                        LocalDateTime.parse(rs.getString("date"))
+                ));
+            }
+        } catch (SQLException e) {
+            Nascraft.getInstance().getLogger().warning("Error retrieving CPI data: " + e.getMessage());
+        }
+
+        return cpiInstants;
+    }
+}

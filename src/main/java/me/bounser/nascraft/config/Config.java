@@ -105,6 +105,7 @@ public class Config {
         }
     }
 
+
     public Boolean getCheckResources() {
         return config.getBoolean("auto-resources-injection");
     }
@@ -147,7 +148,7 @@ public class Config {
     }
 
     public int getPort() {
-        return config.getInt("database.mysql.port");
+        return config.getInt("database.mysql.port", 3306);
     }
 
     public String getDatabase() {

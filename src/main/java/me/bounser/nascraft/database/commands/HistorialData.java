@@ -15,13 +15,12 @@ import java.util.List;
 public class HistorialData {
 
     public static void saveDayPrice(Connection connection, Item item, Instant instant) {
-
         try {
             String insert = "INSERT INTO prices_day (day, identifier, date, price, volume) VALUES (?,?,?,?,?);";
 
             PreparedStatement insertStatement = connection.prepareStatement(insert);
 
-            insertStatement.setInt(1,NormalisedDate. getDays());
+            insertStatement.setInt(1, NormalisedDate.getDays());
             insertStatement.setString(2, item.getIdentifier());
             insertStatement.setString(3, instant.getLocalDateTime().toString());
             insertStatement.setDouble(4, instant.getPrice());
@@ -43,7 +42,6 @@ public class HistorialData {
     }
 
     public static void saveMonthPrice(Connection connection, Item item, Instant instant) {
-
         try {
             String select = "SELECT date FROM prices_month WHERE identifier=? ORDER BY id DESC LIMIT 1;";
 
@@ -54,7 +52,6 @@ public class HistorialData {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (!resultSet.next()) {
-
                 String insert = "INSERT INTO prices_month (day, date, identifier, price, volume) VALUES (?,?,?,?,?);";
 
                 PreparedStatement insertStatement = connection.prepareStatement(insert);
@@ -67,7 +64,6 @@ public class HistorialData {
 
                 insertStatement.executeUpdate();
             } else if (LocalDateTime.parse(resultSet.getString("date")).isBefore(LocalDateTime.now().minusHours(4))) {
-
                 String selectDay = "SELECT date, price, volume FROM prices_day WHERE identifier=? ORDER BY id DESC LIMIT 48;";
 
                 PreparedStatement preparedStatementDay = connection.prepareStatement(selectDay);
@@ -77,7 +73,6 @@ public class HistorialData {
                 ResultSet resultSetDay = preparedStatementDay.executeQuery();
 
                 if (!resultSetDay.next()) {
-
                     String insert = "INSERT INTO prices_month (day, date, identifier, price, volume) VALUES (?,?,?,?,?);";
 
                     PreparedStatement insertStatement = connection.prepareStatement(insert);
@@ -89,21 +84,18 @@ public class HistorialData {
                     insertStatement.setInt(5, instant.getVolume());
 
                     insertStatement.executeUpdate();
-
                 } else {
-
                     double averagePrice = 0;
                     int totalVolume = 0;
-
                     int i = 0;
 
-                    while (resultSetDay.next()) {
+                    do {
                         if (LocalDateTime.parse(resultSetDay.getString("date")).isAfter(LocalDateTime.now().minusHours(4))) {
                             i++;
                             averagePrice += resultSetDay.getDouble("price");
                             totalVolume += resultSetDay.getInt("volume");
                         }
-                    }
+                    } while (resultSetDay.next());
 
                     if (averagePrice == 0) return;
 
@@ -127,27 +119,23 @@ public class HistorialData {
                 deleteStatement.setInt(1, NormalisedDate.getDays()-31);
                 deleteStatement.executeUpdate();
             }
-
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
     public static void saveHistoryPrices(Connection connection, Item item, Instant instant) {
-
         try {
             String select = "SELECT date FROM prices_history WHERE day=? AND identifier=?;";
 
             PreparedStatement preparedStatement = connection.prepareStatement(select);
 
             preparedStatement.setInt(1, NormalisedDate.getDays());
-
             preparedStatement.setString(2, item.getIdentifier());
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (!resultSet.next()){
-
                 String selectMonth = "SELECT date, price, volume FROM prices_month WHERE identifier=? ORDER BY id DESC LIMIT 6;";
 
                 PreparedStatement preparedStatementMonth = connection.prepareStatement(selectMonth);
@@ -157,7 +145,6 @@ public class HistorialData {
                 ResultSet resultSetMonth = preparedStatementMonth.executeQuery();
 
                 if (!resultSetMonth.next()) {
-
                     String insert = "INSERT INTO prices_history (day, date, identifier, price, volume) VALUES (?,?,?,?,?);";
 
                     PreparedStatement insertStatement = connection.prepareStatement(insert);
@@ -169,20 +156,20 @@ public class HistorialData {
                     insertStatement.setInt(5, instant.getVolume());
 
                     insertStatement.executeUpdate();
-
                 } else {
                     double averagePrice = 0;
                     int totalVolume = 0;
-
                     int i = 0;
 
-                    while (resultSetMonth.next()) {
+                    do {
                         if (LocalDateTime.parse(resultSetMonth.getString("date")).isAfter(LocalDateTime.now().minusHours(24))) {
                             i++;
                             averagePrice += resultSetMonth.getDouble("price");
                             totalVolume += resultSetMonth.getInt("volume");
                         }
-                    }
+                    } while (resultSetMonth.next());
+
+                    if (i == 0) return;
 
                     String insert = "INSERT INTO prices_history (day, date, identifier, price, volume) VALUES (?,?,?,?,?);";
 
@@ -197,15 +184,12 @@ public class HistorialData {
                     insertStatement.executeUpdate();
                 }
             }
-
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-
     public static List<Instant> getDayPrices(Connection connection, Item item) {
-
         List<Instant> prices = new LinkedList<>();
 
         try {
@@ -218,14 +202,10 @@ public class HistorialData {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (!resultSet.next()) {
-
                 prices.add(new Instant(LocalDateTime.now().minusHours(24), 0, 0));
                 prices.add(new Instant(LocalDateTime.now().minusMinutes(5), 0, 0));
-
                 prices.add(new Instant(LocalDateTime.now(), item.getPrice().getValue(), item.getVolume()));
-
             } else {
-
                 String select288 = "SELECT date, price, volume FROM prices_day WHERE identifier=? ORDER BY id DESC LIMIT 288;";
 
                 PreparedStatement preparedStatement288 = connection.prepareStatement(select288);
@@ -235,9 +215,7 @@ public class HistorialData {
                 ResultSet resultSet1 = preparedStatement288.executeQuery();
 
                 while (resultSet1.next()) {
-
                     LocalDateTime time = LocalDateTime.parse(resultSet1.getString("date"));
-
                     double price = resultSet1.getDouble("price");
 
                     if (time.isAfter(LocalDateTime.now().minusHours(24)) && price != 0) {
@@ -246,15 +224,12 @@ public class HistorialData {
                                 resultSet1.getDouble("price"),
                                 resultSet1.getInt("volume")
                         ));
-
                     }
                 }
 
                 prices.add(0, new Instant(LocalDateTime.now().minusHours(24), 0, 0));
-
                 prices.add(new Instant(LocalDateTime.now(), item.getPrice().getValue(), item.getVolume()));
             }
-
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -263,7 +238,6 @@ public class HistorialData {
     }
 
     public static List<Instant> getMonthPrices(Connection connection, Item item) {
-
         List<Instant> prices = new LinkedList<>();
 
         try {
@@ -276,14 +250,10 @@ public class HistorialData {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (!resultSet.next()) {
-
                 prices.add(new Instant(LocalDateTime.now().minusDays(30), 0, 0));
                 prices.add(new Instant(LocalDateTime.now().minusMinutes(5), 0, 0));
-
                 prices.add(new Instant(LocalDateTime.now(), item.getPrice().getValue(), item.getVolume()));
-
             } else {
-
                 String select288 = "SELECT date, price, volume FROM prices_month WHERE identifier=? ORDER BY id DESC LIMIT 400;";
 
                 PreparedStatement preparedStatement288 = connection.prepareStatement(select288);
@@ -293,7 +263,6 @@ public class HistorialData {
                 ResultSet resultSet1 = preparedStatement288.executeQuery();
 
                 while (resultSet1.next()) {
-
                     LocalDateTime time = LocalDateTime.parse(resultSet1.getString("date"));
 
                     if (time.isAfter(LocalDateTime.now().minusDays(30))) {
@@ -302,15 +271,12 @@ public class HistorialData {
                                 resultSet1.getDouble("price"),
                                 resultSet1.getInt("volume")
                         ));
-
                     }
                 }
 
                 prices.add(0, new Instant(LocalDateTime.now().minusDays(30), 0, 0));
-
                 prices.add(new Instant(LocalDateTime.now(), item.getPrice().getValue(), item.getVolume()));
             }
-
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -319,7 +285,6 @@ public class HistorialData {
     }
 
     public static List<Instant> getYearPrices(Connection connection, Item item) {
-
         List<Instant> prices = new LinkedList<>();
 
         try {
@@ -332,14 +297,10 @@ public class HistorialData {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (!resultSet.next()) {
-
                 prices.add(new Instant(LocalDateTime.now().minusDays(365), 0, 0));
                 prices.add(new Instant(LocalDateTime.now().minusMinutes(5), 0, 0));
-
                 prices.add(new Instant(LocalDateTime.now(), item.getPrice().getValue(), item.getVolume()));
-
             } else {
-
                 String select288 = "SELECT day, price, volume FROM prices_history WHERE identifier=? ORDER BY day DESC LIMIT 385;";
 
                 PreparedStatement preparedStatement288 = connection.prepareStatement(select288);
@@ -349,7 +310,6 @@ public class HistorialData {
                 ResultSet resultSet1 = preparedStatement288.executeQuery();
 
                 while (resultSet1.next()) {
-
                     LocalDateTime time = LocalDateTime.of(2023, 1, 1, 1, 1).plusDays(resultSet1.getInt("day"));
 
                     if (time.isAfter(LocalDateTime.now().minusDays(365))) {
@@ -358,14 +318,12 @@ public class HistorialData {
                                 resultSet1.getDouble("price"),
                                 resultSet1.getInt("volume")
                         ));
-
                     }
                 }
 
                 prices.add(new Instant(LocalDateTime.now().minusDays(365), 0, 0));
                 prices.add(new Instant(LocalDateTime.now(), item.getPrice().getValue(), item.getVolume()));
             }
-
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -374,7 +332,6 @@ public class HistorialData {
     }
 
     public static List<Instant> getAllPrices(Connection connection, Item item) {
-
         List<Instant> prices = new LinkedList<>();
 
         try {
@@ -387,14 +344,10 @@ public class HistorialData {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (!resultSet.next()) {
-
                 prices.add(new Instant(LocalDateTime.now().minusDays(30), 0, 0));
                 prices.add(new Instant(LocalDateTime.now().minusMinutes(5), 0, 0));
-
                 prices.add(new Instant(LocalDateTime.now(), item.getPrice().getValue(), item.getVolume()));
-
             } else {
-
                 String select288 = "SELECT day, price, volume FROM prices_history WHERE identifier=? ORDER BY day DESC;";
 
                 PreparedStatement preparedStatement288 = connection.prepareStatement(select288);
@@ -404,7 +357,6 @@ public class HistorialData {
                 ResultSet resultSet1 = preparedStatement288.executeQuery();
 
                 while (resultSet1.next()) {
-
                     LocalDateTime time = LocalDateTime.of(2023, 1, 1, 1, 1);
 
                     prices.add(new Instant(
@@ -415,10 +367,8 @@ public class HistorialData {
                 }
 
                 prices.add(new Instant(LocalDateTime.now(), item.getPrice().getValue(), item.getVolume()));
-
                 prices.add(new Instant(LocalDateTime.now(), item.getPrice().getValue(), item.getVolume()));
             }
-
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -427,7 +377,6 @@ public class HistorialData {
     }
 
     public static Double getPriceOfDay(Connection connection, String identifier, int day) {
-
         try {
             String select = "SELECT price FROM prices_history WHERE identifier=? AND day=?;";
 
@@ -441,10 +390,8 @@ public class HistorialData {
             if (!resultSet.next()) return 0.0;
 
             return resultSet.getDouble("price");
-
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
-
 }

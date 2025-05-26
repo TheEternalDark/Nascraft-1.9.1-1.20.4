@@ -44,7 +44,6 @@ public class MySQL implements Database {
         this.PASSWORD = password;
     }
 
-
     @Override
     public void connect() {
         try {
@@ -99,7 +98,7 @@ public class MySQL implements Database {
         return hikari != null && !hikari.isClosed();
     }
 
-    public Connection getConnection() throws SQLException {
+    private Connection getConnection() throws SQLException {
         if (!isConnected()) {
             throw new SQLException("Connection pool is not initialized");
         }
